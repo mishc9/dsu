@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Union, Iterable
 
 
-def flatten_subdirectories(path: Union[Path, str],
-                           pattern=None,
-                           filter_files_only=True) -> Iterable[Path]:
+def traverse_subdirectories(path: Union[Path, str],
+                            pattern=None,
+                            filter_files_only=True) -> Iterable[Path]:
     """
 
     :param path: path to root dir
@@ -16,11 +16,11 @@ def flatten_subdirectories(path: Union[Path, str],
     path = Path(path)
     if path.is_dir():
         if pattern is None:
-            s = [flatten_subdirectories(p) for p in path.iterdir()]
+            s = [traverse_subdirectories(p) for p in path.iterdir()]
         else:
-            s = [flatten_subdirectories(p) for p in path.glob(pattern)]
+            s = [traverse_subdirectories(p) for p in path.glob(pattern)]
             if filter_files_only:
-                s_dirs = [flatten_subdirectories(p) for p in path.iterdir() if p.is_dir()]
+                s_dirs = [traverse_subdirectories(p) for p in path.iterdir() if p.is_dir()]
                 s += s_dirs
         return [i for x in s for i in x]
     else:
