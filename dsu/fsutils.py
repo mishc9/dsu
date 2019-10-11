@@ -25,7 +25,7 @@ def traverse_subdirectories(path: Union[Path, str],
         else:
             return [orig_type(i) for x in s for i in x if i.match(pattern)]
     else:
-        return [orig_type(path)] if path.match(pattern) else []
+        return [orig_type(path)]
 
 
 def make_dir_safely(path: Union[Path, str]) -> None:
