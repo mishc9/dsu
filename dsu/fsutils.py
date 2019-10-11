@@ -16,19 +16,16 @@ def traverse_subdirectories(path: Union[Path, str],
     orig_type = type(path)
     path = Path(path)
     if path.is_dir():
-        if pattern is None:
+        if filter_files_only:
             s = [traverse_subdirectories(p) for p in path.iterdir()]
         else:
-            s = [traverse_subdirectories(p) for p in path.glob(pattern)]
-            if filter_files_only:
-                s_dirs = [traverse_subdirectories(p) for p in path.iterdir() if p.is_dir()]
-                s += s_dirs
-        return [orig_type(i) for x in s for i in x]
-    else:
+            s = [traverse_subdirectories(p) for p in path.iterdir() if p.match(pattern)]
         if pattern is None:
-            return [orig_type(path)]
+            return [orig_type(i) for x in s for i in x]
         else:
-            return [orig_type(path)] if path.match(pattern) else []
+            return [orig_type(i) for x in s for i in x if i.match(pattern)]
+    else:
+        return [orig_type(path)] if path.match(pattern) else []
 
 
 def make_dir_safely(path: Union[Path, str]) -> None:
