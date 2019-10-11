@@ -5,7 +5,7 @@ from typing import Union, Iterable
 
 def traverse_subdirectories(path: Union[Path, str],
                             pattern=None,
-                            filter_files_only=True) -> Iterable[Path]:
+                            filter_files_only=True) -> Iterable[Union[Path, str]]:
     """
 
     :param path: path to root dir
@@ -13,6 +13,7 @@ def traverse_subdirectories(path: Union[Path, str],
     :param filter_files_only: don't filter directories with pattern if True
     :return:
     """
+    orig_type = type(path)
     path = Path(path)
     if path.is_dir():
         if pattern is None:
@@ -22,9 +23,12 @@ def traverse_subdirectories(path: Union[Path, str],
             if filter_files_only:
                 s_dirs = [traverse_subdirectories(p) for p in path.iterdir() if p.is_dir()]
                 s += s_dirs
-        return [i for x in s for i in x]
+        return [orig_type(i) for x in s for i in x]
     else:
-        return [path]
+        if pattern is None:
+            return [orig_type(path)]
+        else:
+            return [orig_type(path)] if path.match(pattern) else []
 
 
 def make_dir_safely(path: Union[Path, str]) -> None:

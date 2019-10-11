@@ -13,7 +13,7 @@ except FileNotFoundError:
     requirements = list()
 
 setup(name='dsu',
-      version='0.0.1',
+      version='0.0.2',
       url='jet.msk.su',
       license='Apache 2',
       author='Mikhail Stepanov',
