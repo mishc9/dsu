@@ -1,4 +1,5 @@
 import os
+import errno
 from pathlib import Path
 from typing import Union, Iterable
 
@@ -37,5 +38,5 @@ def make_dir_safely(path: Union[Path, str]) -> None:
     try:
         os.makedirs(path)
     except OSError as e:
-        if e.errno != os.errno.EEXIST:
+        if e.errno != errno.EEXIST:
             raise
