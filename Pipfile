@@ -6,6 +6,9 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+matplotlib = "*"
+pandas = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.7"
