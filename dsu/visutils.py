@@ -1,7 +1,8 @@
 import os
+from functools import partial
 from math import ceil, floor
 from pathlib import Path
-from typing import Union, Callable, Optional, Tuple, Sized
+from typing import Union, Callable, Optional, Tuple, Sized, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -113,23 +114,7 @@ def plot(ax: Axes, dataframe: pd.DataFrame, col, max_points: int = 25000):
     return ser.plot(ax=ax)
 
 
-def td_heatmap(ax: Axes, dataframe: pd.DataFrame, col, n_segments=1000):
-    """
-    Time-distributed heatmap of parameters (aka proxy for time-distributed Joy Division-like histogram)
-    :param ax:
-    :param dataframe:
-    :param col:
-    :param n_segments:
-    :return:
-    """
-    # Todo: make proper x-axis label
-    X = []
-    Y = []
-    h = []
-    ax.pcolormesh(X, Y, h)
-
-
-def null_frequency(ax: Axes, dataframe: pd.DataFrame, col, fs=120):
+def null_frequency(ax: Axes, dataframe: pd.DataFrame, col, freq='1H'):
     """
     Plot spectrogram of zero frequency
     :param ax:
@@ -139,10 +124,61 @@ def null_frequency(ax: Axes, dataframe: pd.DataFrame, col, fs=120):
     """
     # Todo: smart selection of frequency
     series: pd.Series = dataframe[col]
-    null_series: pd.Series = series.isna().astype(int)
-    values = null_series.values
-    ax.set_title(f"Null freq. of {col}")
-    ax.specgram(values, NFFT=2 ** 10, Fs=fs)
+    null_series: pd.Series = series.notna().astype(int)
+    groups = null_series.groupby(pd.Grouper(freq=freq)).sum()
+    groups /= pd.to_timedelta(freq).total_seconds()
+
+    ax.set_title(f"Not Null freq. of {col}")
+    return ax.plot(groups)
+
+
+def td_heatmap(ax: Axes, dataframe: pd.DataFrame, col, freq='1H'):
+    """
+    Time-distributed heatmap of parameters (aka proxy for time-distributed Joy Division-like histogram)
+    :param freq:
+    :param ax:
+    :param dataframe:
+    :param col:
+    :param n_segments:
+    :return:
+    """
+
+    # Todo: make proper x-axis label
+
+    def hist_of_group(series: pd.Series, bins: Iterable):
+        hist_values, _ = np.histogram(series.values, bins)
+        return hist_values
+
+    ax.set_title(f"Trend of {col}")
+    series: pd.Series = dataframe[col]
+    min_val, max_val = series.min(), series.max()
+    number_of_bins = n_bins(series)
+    if number_of_bins == 0:
+        number_of_bins = 25
+    bins = np.arange(min_val, max_val, (max_val - min_val) / number_of_bins)
+    groups: pd.Series = series.groupby(pd.Grouper(freq=freq)).apply(
+        partial(hist_of_group, bins=bins))
+
+    # How X, Y, C work:
+    # (X[i+1, j], Y[i+1, j])      (X[i+1, j+1], Y[i+1, j+1])
+    #                     +--------+
+    #                     | C[i,j] |
+    #                     +--------+
+    # (X[i, j], Y[i, j])          (X[i, j+1], Y[i, j+1]),
+
+    X = np.tile(np.arange(len(groups)), (len(bins), 1)).T
+    Y = np.tile(bins, (len(groups), 1))
+
+    def pad(x, size):
+        vec = np.zeros(size)
+        vec[:len(x)] = x
+        return x
+
+    C = np.array([pad(val, len(bins))
+                  for val
+                  in groups.values])
+
+    ax.pcolormesh(X, Y, C)
 
 
 def visualize(dataframe: pd.DataFrame,
