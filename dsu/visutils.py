@@ -122,7 +122,7 @@ def td_heatmap(ax: Axes, dataframe: pd.DataFrame, col, n_segments=1000):
     ax.pcolormesh(X, Y, h)
 
 
-def null_frequency(ax: Axes, dataframe: pd.DataFrame, col):
+def null_frequency(ax: Axes, dataframe: pd.DataFrame, col, fs=60):
     """
     Plot spectrogram of zero frequency
     :param ax:
@@ -133,7 +133,8 @@ def null_frequency(ax: Axes, dataframe: pd.DataFrame, col):
     series: pd.Series = dataframe[col]
     null_series: pd.Series = series.isna().astype(int)
     values = null_series.values
-    ax.specgram(values, NFFT=2**10, Fs=2)
+    #
+    ax.specgram(values, NFFT=2**10, Fs=fs)
 
 
 def visualize(dataframe: pd.DataFrame,
@@ -154,7 +155,6 @@ def use_plotter(dataframe: pd.DataFrame,
     col_iter = iter(cols)
 
     n_rows, n_cols = _get_subplot_grid_params(len(cols))
-    print(n_rows, n_cols)
     fig, axes = plt.subplots(nrows=n_rows,
                              ncols=n_cols,
                              figsize=(25, 25))
