@@ -10,5 +10,11 @@ matplotlib = "*"
 pandas = "*"
 numpy = "*"
 
+[test-packages]
+matplotlib = "*"
+pandas = "*"
+numpy = "*"
+pytest = "*"
+
 [requires]
 python_version = "3.7"

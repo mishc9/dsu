@@ -6,6 +6,7 @@ from typing import Union, Callable, Optional, Tuple, Sized
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.axes import Axes
 
 from dsu.fsutils import make_dir_safely
 
@@ -26,16 +27,16 @@ def bin_width(ser: pd.Series) -> Optional[int]:
         return 2 * iqr / quot
 
 
-def n_bins(ser: pd.Series, default: int = 25, max_bins: int = 100) -> int:
+def n_bins(series: pd.Series, default: int = 25, max_bins: int = 100) -> int:
     """
     Calculate number of bins on histogram via Freedman–Diaconis rule
     :param max_bins: int, max. number of bins
     :param default: int, default number of bins
-    :param ser: pandas series
+    :param series: pandas series
     :return: int, n of bins
     """
-    width = bin_width(ser)
-    dist = max(ser) - min(ser)
+    width = bin_width(series)
+    dist = max(series) - min(series)
     val = (ceil(dist / width)
            if width is not None
               and not np.isclose(width, 0)
@@ -45,7 +46,7 @@ def n_bins(ser: pd.Series, default: int = 25, max_bins: int = 100) -> int:
 
 def _get_subplot_grid_params(cols):
     sqrt = floor(cols ** (0.5))
-    n_cols = floor(cols / sqrt)
+    n_cols = max(1, floor(cols / sqrt))
     n_rows = ceil(cols / sqrt)
     return n_rows, n_cols
 
@@ -55,14 +56,14 @@ def _get_freq(dataframe: Sized, max_points: int = 25000) -> int:
     return freq
 
 
-def violin(ax, dataframe, col, max_points: int = 25000):
+def violin(ax: Axes, dataframe, col, max_points: int = 25000):
     # To slow if print each row, so we're using slices
-    # Todo: this function is broken ant don't plot anything
+    # Todo: this function is broken and don't do anything
     freq = floor(len(dataframe) / max_points)
     return ax.violinplot(dataframe[col].iloc[::_get_freq(dataframe, max_points)])
 
 
-def boxplot(ax, dataframe, col):
+def boxplot(ax: Axes, dataframe, col):
     """
     Do a boxplot
     :param ax:
@@ -76,7 +77,7 @@ def boxplot(ax, dataframe, col):
     return ser.plot.box(ax=ax)
 
 
-def hist(ax, dataframe: pd.DataFrame, col, drop_outliers: bool = True):
+def hist(ax: Axes, dataframe: pd.DataFrame, col, drop_outliers: bool = True):
     """
     Plot histogram
     :param ax:
@@ -92,7 +93,7 @@ def hist(ax, dataframe: pd.DataFrame, col, drop_outliers: bool = True):
     return ser.hist(ax=ax, bins=n_bins(ser))
 
 
-def plot(ax, dataframe: pd.DataFrame, col, max_points: int = 25000):
+def plot(ax: Axes, dataframe: pd.DataFrame, col, max_points: int = 25000):
     """
     Plot simple curve
     :param ax:
@@ -104,6 +105,35 @@ def plot(ax, dataframe: pd.DataFrame, col, max_points: int = 25000):
     # To slow if we'll print each row, so we use slices
     ser: pd.Series = dataframe[col].iloc[::_get_freq(dataframe, max_points)]
     return ser.plot(ax=ax)
+
+
+def td_heatmap(ax: Axes, dataframe: pd.DataFrame, col, n_segments=1000):
+    """
+    Time-distributed heatmap of parameters (aka proxy for time-distributed Joy Division-like histogram)
+    :param ax:
+    :param dataframe:
+    :param col:
+    :param n_segments:
+    :return:
+    """
+    X = []
+    Y = []
+    h = []
+    ax.pcolormesh(X, Y, h)
+
+
+def null_frequency(ax: Axes, dataframe: pd.DataFrame, col):
+    """
+    Plot spectrogram of zero frequency
+    :param ax:
+    :param dataframe:
+    :param col:
+    :return:
+    """
+    series: pd.Series = dataframe[col]
+    null_series: pd.Series = series.isna().astype(int)
+    values = null_series.values
+    ax.specgram(values, NFFT=2**10, Fs=2)
 
 
 def visualize(dataframe: pd.DataFrame,
@@ -124,6 +154,7 @@ def use_plotter(dataframe: pd.DataFrame,
     col_iter = iter(cols)
 
     n_rows, n_cols = _get_subplot_grid_params(len(cols))
+    print(n_rows, n_cols)
     fig, axes = plt.subplots(nrows=n_rows,
                              ncols=n_cols,
                              figsize=(25, 25))
@@ -132,9 +163,17 @@ def use_plotter(dataframe: pd.DataFrame,
             try:
                 col = next(col_iter)
                 print(f'Plotting {col}')
-                plotter(axes[n_row, n_col], dataframe, col)
+                try:
+                    plotter(axes[n_row, n_col], dataframe, col)
+                except TypeError:
+                    plotter(axes, dataframe, col)
+                    break
             except StopIteration:
                 break
     make_dir_safely(figsave_path)
     fig.tight_layout()
-    fig.savefig(os.path.join(figsave_path, plotter.__name__ + '_' + file_suffix or '' + '.png'))
+    if file_suffix is None:
+        file_suffix = ''
+    else:
+        file_suffix = '_' + file_suffix
+    fig.savefig(os.path.join(figsave_path, plotter.__name__ + file_suffix + '.png'))
