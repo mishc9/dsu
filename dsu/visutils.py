@@ -39,10 +39,13 @@ def n_bins(series: pd.Series, default: int = 25, max_bins: int = 100) -> int:
     if bin_width is None:
         return default
     dist = max(series) - min(series)
-    val = (ceil(dist / width)
-           if width is not None
-              and not np.isclose(width, 0)
-           else default)
+    try:
+        val = (ceil(dist / width)
+               if width is not None
+                  and not np.isclose(width, 0)
+               else default)
+    except ValueError:
+        return default
     return val if val <= max_bins else max_bins
 
 
