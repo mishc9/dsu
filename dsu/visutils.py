@@ -122,7 +122,7 @@ def td_heatmap(ax: Axes, dataframe: pd.DataFrame, col, n_segments=1000):
     ax.pcolormesh(X, Y, h)
 
 
-def null_frequency(ax: Axes, dataframe: pd.DataFrame, col, fs=60):
+def null_frequency(ax: Axes, dataframe: pd.DataFrame, col, fs=120):
     """
     Plot spectrogram of zero frequency
     :param ax:
