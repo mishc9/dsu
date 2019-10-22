@@ -36,6 +36,8 @@ def n_bins(series: pd.Series, default: int = 25, max_bins: int = 100) -> int:
     :return: int, n of bins
     """
     width = bin_width(series)
+    if bin_width is None:
+        return default
     dist = max(series) - min(series)
     val = (ceil(dist / width)
            if width is not None
@@ -104,6 +106,7 @@ def plot(ax: Axes, dataframe: pd.DataFrame, col, max_points: int = 25000):
     """
     # To slow if we'll print each row, so we use slices
     ser: pd.Series = dataframe[col].iloc[::_get_freq(dataframe, max_points)]
+    ax.set_title(col)
     return ser.plot(ax=ax)
 
 
@@ -116,6 +119,7 @@ def td_heatmap(ax: Axes, dataframe: pd.DataFrame, col, n_segments=1000):
     :param n_segments:
     :return:
     """
+    # Todo: make proper x-axis label
     X = []
     Y = []
     h = []
@@ -130,11 +134,12 @@ def null_frequency(ax: Axes, dataframe: pd.DataFrame, col, fs=120):
     :param col:
     :return:
     """
+    # Todo: smart selection of frequency
     series: pd.Series = dataframe[col]
     null_series: pd.Series = series.isna().astype(int)
     values = null_series.values
-    #
-    ax.specgram(values, NFFT=2**10, Fs=fs)
+    ax.set_title(f"Null freq. of {col}")
+    ax.specgram(values, NFFT=2 ** 10, Fs=fs)
 
 
 def visualize(dataframe: pd.DataFrame,
