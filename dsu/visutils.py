@@ -8,7 +8,7 @@ import pandas as pd
 from dsu.fsutils import make_dir_safely
 
 # Todo: parallelize plotters with Pool
-from dsu.vis.plotters import boxplot, hist, plot
+from dsu.vis.plotters import boxplot, hist, plot, td_heatmap, null_frequency
 from dsu.vis.utils import _get_subplot_grid_params
 import yaml
 
@@ -29,7 +29,7 @@ def load_data_description(conf_path: Union[str, Path]) -> Optional[dict]:
 def visualize(dataframe: pd.DataFrame,
               path_to_file: Union[str, Path],
               file_suffix=None,
-              plotters: Tuple = (hist, boxplot, plot,),
+              plotters: Tuple = (hist, boxplot, plot, td_heatmap, null_frequency,),
               plotter_config=Optional[Union[str, Path]]
               ):
     if plotter_config is not None:
