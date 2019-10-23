@@ -88,7 +88,6 @@ def td_heatmap(ax: Axes,
                drop_outliers: bool = True,
                lo: float = 0.01,
                hi: float = 0.99):
-
     """
     Time-distributed heatmap of parameters (aka proxy for time-distributed Joy Division-like histogram)
     :param hi:
@@ -110,34 +109,37 @@ def td_heatmap(ax: Axes,
 
     ax.set_title(f"Trend of {col}")
     series: pd.Series = dataframe[col]
-    # Always filter outliers
     if drop_outliers:
         series: pd.Series = series[(series > series.quantile(q=lo)) & (series < series.quantile(q=hi))]
     min_val, max_val = series.min(), series.max()
     number_of_bins = n_bins(series)
     if number_of_bins == 0:
         number_of_bins = 25
-    bins = np.arange(min_val, max_val, (max_val - min_val) / number_of_bins)
-    groups: pd.Series = series.groupby(pd.Grouper(freq=freq)).apply(
-        partial(hist_of_group, bins=bins))
+    try:
+        bins = np.arange(min_val, max_val, (max_val - min_val) / number_of_bins)
+        groups: pd.Series = series.groupby(pd.Grouper(freq=freq)).apply(
+            partial(hist_of_group, bins=bins))
 
-    # How X, Y, C work:
-    # (X[i+1, j], Y[i+1, j])      (X[i+1, j+1], Y[i+1, j+1])
-    #                     +--------+
-    #                     | C[i,j] |
-    #                     +--------+
-    # (X[i, j], Y[i, j])          (X[i, j+1], Y[i, j+1]),
+        # How X, Y, C work:
+        #
+        # (X[i+1, j], Y[i+1, j])      (X[i+1, j+1], Y[i+1, j+1])
+        #                     +--------+
+        #                     | C[i,j] |
+        #                     +--------+
+        # (X[i, j], Y[i, j])          (X[i, j+1], Y[i, j+1]),
 
-    X = np.tile(np.arange(len(groups)), (len(bins), 1)).T
-    Y = np.tile(bins, (len(groups), 1))
+        X = np.tile(np.arange(len(groups)), (len(bins), 1)).T
+        Y = np.tile(bins, (len(groups), 1))
 
-    def pad(x, size):
-        vec = np.zeros(size)
-        vec[:len(x)] = x
-        return x
+        def pad(x, size):
+            vec = np.zeros(size)
+            vec[:len(x)] = x
+            return x
 
-    C = np.array([pad(val, len(bins))
-                  for val
-                  in groups.values])
+        C = np.array([pad(val, len(bins))
+                      for val
+                      in groups.values])
 
-    ax.pcolormesh(X, Y, C)
+        ax.pcolormesh(X, Y, C)
+    except ValueError:
+        print("Failed to plot!")
