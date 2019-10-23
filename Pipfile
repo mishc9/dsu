@@ -9,6 +9,7 @@ verify_ssl = true
 matplotlib = "*"
 pandas = "*"
 numpy = "*"
+pyyaml = "*"
 
 [test-packages]
 matplotlib = "*"
