@@ -30,7 +30,7 @@ def visualize(dataframe: pd.DataFrame,
               path_to_file: Union[str, Path],
               file_suffix=None,
               plotters: Tuple = (hist, boxplot, plot, td_heatmap, null_frequency,),
-              plotter_config=Optional[Union[str, Path]]
+              plotter_config: Optional[Union[str, Path]] = None
               ):
     if plotter_config is not None:
         plotter_config = load_data_description(plotter_config)
