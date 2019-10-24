@@ -1,6 +1,5 @@
 from functools import partial
-from math import floor
-from typing import Iterable
+from typing import Iterable, Callable
 
 import numpy as np
 import pandas as pd
@@ -9,81 +8,87 @@ from matplotlib.axes import Axes
 from dsu.vis.utils import n_bins, _get_freq
 
 
-def violin(ax: Axes, dataframe, col, max_points: int = 25000):
-    # To slow if print each row, so we're using slices
+def _drop_if(series: pd.Series, dropna: bool) -> pd.Series:
+    return series.dropna() if dropna else series
+
+
+def plotter_wrapper(plotter: Callable, ax: Axes, series: pd.Series,
+                    dropna: bool = True, **kwargs):
+    return plotter(ax, _drop_if(series, dropna), **kwargs)
+
+
+def violin(ax: Axes, series: pd.Series, max_points: int = 25000):
+    # To slow if we'll print each row, so we're using slices
     # Todo: this function is broken and don't do anything
-    freq = floor(len(dataframe) / max_points)
-    return ax.violinplot(dataframe[col].iloc[::_get_freq(dataframe, max_points)])
+    return ax.violinplot(series.iloc[::_get_freq(series, max_points)])
 
 
-def boxplot(ax: Axes, dataframe, col):
+def boxplot(ax: Axes, series: pd.Series, drop_outliers: bool = True):
     """
     Do a boxplot
     :param ax:
-    :param dataframe:
-    :param col:
+    :param series:
+    :param series.name:
     :return:
     """
-    ser: pd.Series = dataframe[col]
-    ser: pd.Series = ser[(ser > ser.quantile(q=0.01)) & (ser < ser.quantile(q=0.99))]
-    ax.set_title(col)
-    return ser.plot.box(ax=ax)
+    if drop_outliers:
+        series: pd.Series = series[(series > series.quantile(q=0.01)) & (series < series.quantile(q=0.99))]
+    ax.set_title(series.name)
+    return series.plot.box(ax=ax)
 
 
-def hist(ax: Axes, dataframe: pd.DataFrame, col, drop_outliers: bool = True, lo=0.01, hi=0.99):
+def hist(ax: Axes, series: pd.Series, drop_outliers: bool = True, lo=0.01, hi=0.99):
     """
     Plot histogram
     :param hi:
     :param lo:
     :param ax:
-    :param dataframe:
-    :param col:
+    :param series:
+    :param series.name:
     :param drop_outliers:
     :return:
     """
-    ser: pd.Series = dataframe[col]
     if drop_outliers:
-        ser: pd.Series = ser[(ser > ser.quantile(q=lo)) & (ser < ser.quantile(q=hi))]
-    ax.set_title(col)
-    return ser.hist(ax=ax, bins=n_bins(ser))
+        series: pd.Series = series[(series > series.quantile(q=lo)) & (series < series.quantile(q=hi))]
+    ax.set_title(series.name)
+    return series.hist(ax=ax, bins=n_bins(series))
 
 
-def plot(ax: Axes, dataframe: pd.DataFrame, col, max_points: int = 25000):
+def plot(ax: Axes, series: pd.Series, max_points: int = 25000):
     """
     Plot simple curve
     :param ax:
-    :param dataframe:
-    :param col:
+    :param series:
+    :param series.name:
     :param max_points:
     :return:
     """
     # To slow if we'll print each row, so we use slices
-    ser: pd.Series = dataframe[col].iloc[::_get_freq(dataframe, max_points)]
-    ax.set_title(col)
+    ser: pd.Series = series.iloc[::_get_freq(series, max_points)]
+    ax.set_title(series.name)
     return ser.plot(ax=ax)
 
 
-def null_frequency(ax: Axes, dataframe: pd.DataFrame, col, freq='1H'):
+def null_frequency(ax: Axes, series: pd.Series, freq='1H'):
     """
     Plot spectrogram of zero frequency
     :param ax:
-    :param dataframe:
-    :param col:
+    :param series:
+    :param series.name:
     :return:
     """
     # Todo: smart selection of frequency
-    series: pd.Series = dataframe[col]
+    series: pd.Series = series
     null_series: pd.Series = series.notna().astype(int)
     groups = null_series.groupby(pd.Grouper(freq=freq)).sum()
     groups /= pd.to_timedelta(freq).total_seconds()
 
-    ax.set_title(f"Not Null freq. of {col}")
+    ax.set_title(f"Not Null freq. of {series.name}")
     return ax.plot(groups)
 
 
 def td_heatmap(ax: Axes,
-               dataframe: pd.DataFrame,
-               col,
+               series: pd.Series,
                freq='1H',
                drop_outliers: bool = True,
                lo: float = 0.01,
@@ -95,8 +100,8 @@ def td_heatmap(ax: Axes,
     :param drop_outliers:
     :param freq:
     :param ax:
-    :param dataframe:
-    :param col:
+    :param series:
+    :param series.name:
     :param n_segments:
     :return:
     """
@@ -107,8 +112,8 @@ def td_heatmap(ax: Axes,
         hist_values, _ = np.histogram(series.values, bins)
         return hist_values
 
-    ax.set_title(f"Trend of {col}")
-    series: pd.Series = dataframe[col]
+    ax.set_title(f"Trend of {series.name}")
+    series: pd.Series = series
     if drop_outliers:
         series: pd.Series = series[(series > series.quantile(q=lo)) & (series < series.quantile(q=hi))]
     min_val, max_val = series.min(), series.max()

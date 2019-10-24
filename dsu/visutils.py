@@ -8,7 +8,7 @@ import pandas as pd
 from dsu.fsutils import make_dir_safely
 
 # Todo: parallelize plotters with Pool
-from dsu.vis.plotters import boxplot, hist, plot, td_heatmap, null_frequency
+from dsu.vis.plotters import boxplot, hist, plot, td_heatmap, null_frequency, plotter_wrapper
 from dsu.vis.utils import _get_subplot_grid_params
 import yaml
 
@@ -64,9 +64,9 @@ def use_plotter(dataframe: pd.DataFrame,
                 col = next(col_iter)
                 print(f'Plotting {col}')
                 try:
-                    plotter(axes[n_row, n_col], dataframe, col, **plotter_config)
+                    plotter_wrapper(plotter, axes[n_row, n_col], dataframe[col], **plotter_config)
                 except TypeError:
-                    plotter(axes, dataframe, col, **plotter_config)
+                    plotter_wrapper(plotter, axes, dataframe[col], **plotter_config)
                     break
             except StopIteration:
                 break
