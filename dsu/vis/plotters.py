@@ -17,7 +17,11 @@ def plotter_wrapper(plotter: Callable,
                     series: pd.Series,
                     dropna: bool = False,
                     **kwargs):
-    return plotter(ax, _drop_if(series, dropna), **kwargs)
+    try:
+        return plotter(ax, _drop_if(series, dropna), **kwargs)
+    except Exception as e:
+        print(str(e))
+        return None
 
 
 def violin(ax: Axes, series: pd.Series, max_points: int = 25000):
