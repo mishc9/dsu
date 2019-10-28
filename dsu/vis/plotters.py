@@ -61,9 +61,10 @@ def hist(ax: Axes, series: pd.Series, drop_outliers: bool = True, lo=0.01, hi=0.
     return series.hist(ax=ax, bins=n_bins(series))
 
 
-def plot(ax: Axes, series: pd.Series, max_points: int = 25000):
+def plot(ax: Axes, series: pd.Series, discretize: bool = True, max_points: int = 25000):
     """
     Plot simple curve
+    :param discretize:
     :param ax:
     :param series:
     :param series.name:
@@ -71,9 +72,10 @@ def plot(ax: Axes, series: pd.Series, max_points: int = 25000):
     :return:
     """
     # To slow if we'll print each row, so we use slices
-    ser: pd.Series = series.iloc[::_get_freq(series, max_points)]
+    if discretize:
+        series: pd.Series = series.iloc[::_get_freq(series, max_points)]
     ax.set_title(series.name)
-    return ser.plot(ax=ax)
+    return series.plot(ax=ax)
 
 
 def reindex_date(data: Union[pd.Series, pd.DataFrame], freq) -> Union[pd.Series, pd.DataFrame]:
@@ -92,7 +94,7 @@ def null_frequency(ax: Axes, series: pd.Series, freq='1H'):
     :return:
     """
     # Todo: smart selection of frequency
-    series: pd.Series = reindex_date(series, freq=freq)
+    # series: pd.Series = reindex_date(series, freq=freq)
     null_series: pd.Series = series.notna().astype(int)
     groups = null_series.groupby(pd.Grouper(freq=freq)).sum()
     groups /= pd.to_timedelta(freq).total_seconds()
@@ -127,7 +129,7 @@ def td_heatmap(ax: Axes,
         return hist_values
 
     ax.set_title(f"Trend of {series.name}")
-    series: pd.Series = reindex_date(series, freq=freq)
+    # series: pd.Series = reindex_date(series, freq=freq)
     if drop_outliers:
         series: pd.Series = series[(series > series.quantile(q=lo)) & (series < series.quantile(q=hi))]
     min_val, max_val = series.min(), series.max()
