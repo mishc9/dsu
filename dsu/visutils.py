@@ -54,29 +54,27 @@ def use_plotter(dataframe: pd.DataFrame,
     if plotter_config is None:
         plotter_config = dict()
 
-    try:
-        n_rows, n_cols = _get_subplot_grid_params(len(cols))
-        fig, axes = plt.subplots(nrows=n_rows,
-                                 ncols=n_cols,
-                                 figsize=(25, 25))
-        for n_row in range(n_rows):
-            for n_col in range(n_cols):
+    n_rows, n_cols = _get_subplot_grid_params(len(cols))
+    fig, axes = plt.subplots(nrows=n_rows,
+                             ncols=n_cols,
+                             figsize=(25, 25))
+    for n_row in range(n_rows):
+        for n_col in range(n_cols):
+            try:
+                col = next(col_iter)
+                print(f'Plotting {col}')
                 try:
-                    col = next(col_iter)
-                    print(f'Plotting {col}')
-                    try:
-                        plotter_wrapper(plotter, axes[n_row, n_col], dataframe[col], **plotter_config)
-                    except TypeError:
-                        plotter_wrapper(plotter, axes, dataframe[col], **plotter_config)
-                        break
-                except StopIteration:
+                    plotter_wrapper(plotter, axes[n_row, n_col], dataframe[col], **plotter_config)
+                except TypeError:
+                    plotter_wrapper(plotter, axes, dataframe[col], **plotter_config)
                     break
-        make_dir_safely(figsave_path)
-        fig.tight_layout()
-        if file_suffix is None:
-            file_suffix = ''
-        else:
-            file_suffix = '_' + file_suffix
-        fig.savefig(os.path.join(figsave_path, plotter.__name__ + file_suffix + '.png'))
-    except Exception as e:
-        print(str(e))
+            except StopIteration:
+                break
+    make_dir_safely(figsave_path)
+    fig.tight_layout()
+    if file_suffix is None:
+        file_suffix = ''
+    else:
+        file_suffix = '_' + file_suffix
+    print(f"--> saving image {str(figsave_path)}")
+    fig.savefig(os.path.join(figsave_path, plotter.__name__ + file_suffix + '.png'))
