@@ -61,7 +61,7 @@ def hist(ax: Axes, series: pd.Series, drop_outliers: bool = True, lo=0.01, hi=0.
     return series.hist(ax=ax, bins=n_bins(series))
 
 
-def plot(ax: Axes, series: pd.Series, discretize: bool = True, max_points: int = 25000):
+def plot(ax: Axes, series: pd.Series, max_points: int = 25000):
     """
     Plot simple curve
     :param discretize:
@@ -72,8 +72,7 @@ def plot(ax: Axes, series: pd.Series, discretize: bool = True, max_points: int =
     :return:
     """
     # To slow if we'll print each row, so we use slices
-    if discretize:
-        series: pd.Series = series.iloc[::_get_freq(series, max_points)]
+    # series: pd.Series = series.iloc[::_get_freq(series, max_points)]
     ax.set_title(series.name)
     return series.plot(ax=ax)
 
