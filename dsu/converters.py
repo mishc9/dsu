@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 
+
 def get_str_delta(delta: timedelta):
     """
     Converting timedelta to pandas format
@@ -22,4 +23,3 @@ def get_str_delta(delta: timedelta):
     if not str_delta:
         raise ValueError("Empty str_delta means infinite frequency, should change time_delta")
     return str_delta
-

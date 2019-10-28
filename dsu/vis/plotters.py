@@ -12,8 +12,11 @@ def _drop_if(series: pd.Series, dropna: bool) -> pd.Series:
     return series.dropna() if dropna else series
 
 
-def plotter_wrapper(plotter: Callable, ax: Axes, series: pd.Series,
-                    dropna: bool = True, **kwargs):
+def plotter_wrapper(plotter: Callable,
+                    ax: Axes,
+                    series: pd.Series,
+                    dropna: bool = False,
+                    **kwargs):
     return plotter(ax, _drop_if(series, dropna), **kwargs)
 
 
