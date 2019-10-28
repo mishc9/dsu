@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Iterable, Callable
+from typing import Iterable, Callable, Union
 
 import numpy as np
 import pandas as pd
@@ -76,6 +76,13 @@ def plot(ax: Axes, series: pd.Series, max_points: int = 25000):
     return ser.plot(ax=ax)
 
 
+def reindex_date(data: Union[pd.Series, pd.DataFrame], freq) -> Union[pd.Series, pd.DataFrame]:
+    start, end = data.index.min(), data.index.max()
+    DATE_RANGE = pd.date_range(start, end, freq=freq)
+    print(f'Setting date range {start}:{end}, freq {freq}')
+    return data.reindex(DATE_RANGE)
+
+
 def null_frequency(ax: Axes, series: pd.Series, freq='1H'):
     """
     Plot spectrogram of zero frequency
@@ -85,7 +92,7 @@ def null_frequency(ax: Axes, series: pd.Series, freq='1H'):
     :return:
     """
     # Todo: smart selection of frequency
-    series: pd.Series = series
+    series: pd.Series = reindex_date(series, freq=freq)
     null_series: pd.Series = series.notna().astype(int)
     groups = null_series.groupby(pd.Grouper(freq=freq)).sum()
     groups /= pd.to_timedelta(freq).total_seconds()
@@ -120,7 +127,7 @@ def td_heatmap(ax: Axes,
         return hist_values
 
     ax.set_title(f"Trend of {series.name}")
-    series: pd.Series = series
+    series: pd.Series = reindex_date(series, freq=freq)
     if drop_outliers:
         series: pd.Series = series[(series > series.quantile(q=lo)) & (series < series.quantile(q=hi))]
     min_val, max_val = series.min(), series.max()
