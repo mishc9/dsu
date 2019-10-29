@@ -44,12 +44,17 @@ def n_bins(series: pd.Series, default: int = 25, max_bins: int = 100) -> int:
 
 
 def _get_subplot_grid_params(cols):
-    sqrt = floor(cols ** (0.5))
-    n_cols = max(1, floor(cols / sqrt))
-    n_rows = ceil(cols / sqrt)
+    sqrt = ceil(cols ** (0.5))
+    n_cols = sqrt
+    n_rows = floor(cols / sqrt)
     return n_rows, n_cols
 
 
 def _get_freq(dataframe: Sized, max_points: int = 25000) -> int:
     freq = ceil(len(dataframe) / max_points)
     return freq
+
+
+if __name__ == '__main__':
+    for i in range(1, 65):
+        print(_get_subplot_grid_params(i))

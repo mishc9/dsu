@@ -102,6 +102,19 @@ def null_frequency(ax: Axes, series: pd.Series, freq='1H'):
     return ax.plot(groups)
 
 
+def med_mean_plot(ax: Axes, series: pd.Series):
+    """
+
+    :param ax:
+    :param series:
+    :return:
+    """
+    index = series.index
+    series.groupby(by=index).mean().plot(ax=ax)
+    series.groupby(by=index).median().plot(ax=ax)
+    ax.set_title(series.name)
+
+
 def td_heatmap(ax: Axes,
                series: pd.Series,
                freq='1H',
