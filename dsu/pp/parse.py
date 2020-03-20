@@ -13,7 +13,7 @@ def report_to_dict(report):
     return dict_report
 
 
-def get_columns_by_type(dict_report):
+def get_warnings_by_type(dict_report):
     """
     Extract warnings and group them by type.
     returnst: lists - missing, high_cardinality, uniform, zeros, unique, other
@@ -45,7 +45,7 @@ def get_columns_by_type(dict_report):
     return missing, high_cardinality, uniform, zeros, unique, other
 
 
-def get_variable_groups(report):
+def get_columns_by_type(report):
     """
     Group variables by type
     returns: lists - numeric_vars, cat_vars, bool_vars
