@@ -1,7 +1,7 @@
-from distutils.core import setup
 from pathlib import Path
 
 import setuptools
+from distutils.core import setup
 
 dpath = Path(__file__).parent.absolute()
 
